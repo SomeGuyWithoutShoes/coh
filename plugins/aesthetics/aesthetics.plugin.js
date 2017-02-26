@@ -9,7 +9,7 @@
                 reg_width = /[\u3000\uFF01-\uFF5E]/
             
             return input.match(reg_latin)? 1: (
-                input.match(reg_width)? 0: -1
+                input.match(reg_width)? -1: 0
             )
         }
         let E_WIDTH = (input, range = 0xFEE0) => {
@@ -53,7 +53,7 @@
         return class {
             getName () {return "Aesthetics"}
             getDescription() {return "Need I say more?<br/><br/>Toggle capslock to switch between *width/latin input."}
-            getVersion () {return "0.2.0"}
+            getVersion () {return "0.2.1"}
             getAuthor () {return "Cihparg"}
             
             load () {}
