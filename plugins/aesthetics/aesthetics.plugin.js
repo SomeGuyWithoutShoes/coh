@@ -53,7 +53,7 @@
         return class {
             getName () {return "Aesthetics"}
             getDescription() {return "Need I say more?<br/><br/>Toggle capslock to switch between *width/latin input."}
-            getVersion () {return "0.1.8"}
+            getVersion () {return "0.2.0"}
             getAuthor () {return "Cihparg"}
             
             load () {}
