@@ -1,12 +1,12 @@
 //META{"name":"aesthetics"}*//
     let aesthetics = (() => {
         let E_EITHER = (input) => {
-            let regular = /[\x20\x21-\x7E\x3000\xFF01-\xFF5E]/
+            let regular = /[\x20\x21-\x7E\u3000\uFF01-\uFF5E]/
             return input.length === 1 && regular.test(input)
         }
         let E_WHICH = (input) => {
             let reg_latin = /[\x20\x21-\x7E]/,
-                reg_width = /[\x3000\xFF01-\xFF5E]/
+                reg_width = /[\u3000\uFF01-\uFF5E]/
             
             return input.match(reg_latin)? 1: (
                 input.match(reg_width)? 0: -1
@@ -21,7 +21,7 @@
             )
         }
         let E_ASCII = (input, range = 0xFEE0) => {
-            let regular = /[\xFF01-\xFF5E]/g
+            let regular = /[\uFF01-\uFF5E]/g
             
             return input.replace(regular, ch => ch.codePointAt(0) === 0x3000
                 ?   String.fromCodePoint(0x20)
@@ -58,12 +58,8 @@
             
             load () {}
             unload () {}
-            start () {
-                document.addEventListener("keydown", EVENT)
-            }
-            stop () {
-                document.removeEventListener("keydown", EVENT)
-            }
+            start () {document.addEventListener("keydown", EVENT)}
+            stop () {document.removeEventListener("keydown", EVENT)}
             
             getSettingsPanel () {return "<h1>Nothing here.</h1>"}
         }
