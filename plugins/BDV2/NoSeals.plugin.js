@@ -5,15 +5,22 @@ class NoSeals {constructor() {
     const Plugin = new class $plugin {}
     
     Plugin.config = {}
-//  {message, channel, ActionTypes}
+//  {message, author, channel, ActionTypes}
     Plugin.config.preserveTitle = () => `[NoSeals]`
-    Plugin.config.preserveFooter = () => {text: `Message delet protection since 1942`}
+    Plugin.config.preserveFooter = () => new Object({text: `Message delet protection since 1942`})
     Plugin.config.preserveColor = () => 0x112233
     Plugin.config.preserveTTS = () => false
+    
 //  {message, author, channel}
-    Plugin.config.embedContent = ({author}) => `<@!${author.id}>, : ^ )`
-    Plugin.config.embedFooter = ({channel}) => `in #${channel.name}`
+    Plugin.config.embedContent = ({author}) => `<@!${author.id}>, that's a real thonker.`
+    Plugin.config.embedFooter = ({channel}) => new Object({text: `in #${channel.name}`})
     Plugin.config.embedColor = () => 0xFFAA22
+    
+//  {message, author, emoji}
+    Plugin.config.reactionTitle = () => `React delets`
+    Plugin.config.reactionDescription = ({author,emoji}) => `${author.username} removed ${emoji.name}.\n`
+    Plugin.config.reactionFooter = () => new Object({text: `they gone :(`})
+    Plugin.config.reactionColor = () => 0xCAFFEE
     
     Plugin.loader = () => {
         Plugin.modules = [
@@ -24,44 +31,121 @@ class NoSeals {constructor() {
             BDV2.WebpackModules.findByUniqueProperties(["enqueue"]),
             BDV2.WebpackModules.findByUniqueProperties(["getUser"]),
         ]
-        Plugin.messageCache = {}
-        Plugin.daemons = []
-        Plugin.retaliate = id => {
-            const message = Plugin.messageCache[id]
-            const channel = Plugin.modules[3].getChannel(message.channel_id)
-            const ActionTypes = Plugin.modules[1].ActionTypes
-            
-            if (!message.NoSeals) {
-                if (Date.now() - Date.parse(message.timestamp) <= 6e4) {
-                //if (message.mention_everyone || message.mention_roles.length > 0 || message.mentions.length > 0) {
-                    Object.assign(message, {
-                        NoSeals: true,
-                        id: `9${message.id}`,
-                        nonce: `NS.${message.id}`,
-                        guild_id: channel.guild_id,
-                        tts: Plugin.config.preserveTTS({message,channel,ActionTypes})
-                    })
-                    message.embeds.push({
-                        title: Plugin.config.preserveTitle({message,channel,ActionTypes}),
-                        footer: Plugin.config.preserveFooter({message,channel,ActionTypes}),
-                        url: `javascript: window.NoSeals.quote(${JSON.stringify(message)})`,
-                        color: Plugin.config.preserveColor({message,channel,ActionTypes}),
-                        timestamp: message.timestamp
-                    })
+        Plugin.events = {
+            LOAD_MESSAGES_SUCCESS ({data, action}) {
+                const messages = action.messages
+                const channel = action.channelId
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i]
+                    
+                    if (!Plugin.messageCache[message.id]) {
+                        const daemon = {state: 0, runtime: 6e4}
+                    
+                        Plugin.daemons.push(daemon.process = setTimeout(wait => {
+                            if (Plugin.messageCache[message.id])
+                                delete Plugin.messageCache[message.id]
+                            daemon.state = 1
+                        }, daemon.runtime))
+                        
+                        Plugin.messageCache[message.id] = message
+                    }
+                }
+            },
+            MESSAGE_CREATE ({data, action}) {
+                const channel = data.methodArguments[0].channel_id
+                const message = data.methodArguments[0].message
+                
+                if (!message.NoSeals && !Plugin.messageCache[message.id]) {
+                    const daemon = {state: 0, runtime: 6e4}
+                    
+                    Plugin.daemons.push(daemon.process = setTimeout(wait => {
+                        if (Plugin.messageCache[message.id])
+                            delete Plugin.messageCache[message.id]
+                        daemon.state = 1
+                    }, daemon.runtime))
+                    
+                    Plugin.messageCache[message.id] = message
+                }
+            },
+            MESSAGE_DELETE ({data, action}) {
+                const id = data.methodArguments[0].id
+                
+                if (Plugin.messageCache[id]) {
+                    const message = Plugin.messageCache[id]
+                    const author = Plugin.modules[5].getUser(message.author.id)
+                    const channel = Plugin.modules[3].getChannel(message.channel_id)
+                    const ActionTypes = Plugin.modules[1].ActionTypes
+                    
+                    if (!message.NoSeals) {
+                        if (Date.now() - Date.parse(message.timestamp) <= 6e4) {
+                            Object.assign(message, {
+                                NoSeals: true,
+                                id: `9${message.id}`,
+                                nonce: `NS.${message.id}`,
+                                guild_id: channel.guild_id,
+                                tts: Plugin.config.preserveTTS({message,channel,author,ActionTypes})
+                            })
+                            Plugin.attachEmbed({message, embed: {
+                                title: Plugin.config.preserveTitle({message,channel,author,ActionTypes}),
+                                footer: Plugin.config.preserveFooter({message,channel,author,ActionTypes}),
+                                url: `javascript: window.NoSeals.quote(${JSON.stringify(message)})`,
+                                color: Plugin.config.preserveColor({message,channel,author,ActionTypes}),
+                                timestamp: message.timestamp
+                            }})
+                            Plugin.modules[0].dispatch({
+                                channelId: message.channel_id,
+                                message: message,
+                                optimistic: false,
+                                NoSeals: true,
+                                type: ActionTypes.MESSAGE_CREATE
+                            })
+                            
+                            delete Plugin.messageCache[id]
+                        }
+                    }
+                }
+            },
+            MESSAGE_REACTION_REMOVE ({data, action}) {
+                const messageId = action.messageId
+                const emoji = action.emoji
+                
+                if (!action.optimistic)
+                if (Plugin.messageCache[messageId]) {
+                    const message = Plugin.messageCache[messageId]
+                    const channel = Plugin.modules[3].getChannel(message.channel_id)
+                    const author = Plugin.modules[5].getUser(action.userId)
+                    const ActionTypes = Plugin.modules[1].ActionTypes
+                    let reactionBody = null
+                    
+                    for (let i = 0; i < message.embeds.length; i++)
+                    if (message.embeds[i].title === Plugin.config.reactionTitle({message,emoji,author}))
+                        reactionBody = message.embeds[i]
+                    
+                    if (!reactionBody)
+                        reactionBody = Plugin.attachEmbed({message, embed: {
+                            title: Plugin.config.reactionTitle({message,emoji,author}),
+                            description: "",
+                            footer: Plugin.config.reactionFooter({message,emoji,author}),
+                            color: Plugin.config.reactionColor({message,emoji,author}),
+                            timestamp: message.timestamp
+                        }})
+                    
+                    reactionBody.description += Plugin.config.reactionDescription({message,emoji,author})
                     
                     Plugin.modules[0].dispatch({
                         channelId: message.channel_id,
                         message: message,
-                        optimistic: false,
-                        NoSeals: true,
-                        type: ActionTypes.MESSAGE_CREATE
+                        optimistic: true,
+                        type: ActionTypes.MESSAGE_UPDATE
                     })
-                    
-                    delete Plugin.messageCache[id]
                 }
-            } else {
-                delete Plugin.messageCache[id]
             }
+        }
+        Plugin.attachEmbed = data => {
+            const {message, embed} = data
+            
+            if (message && embed)
+                return message.embeds[message.embeds.push(embed)-1]
         }
         Plugin.quote = message => {
             const author = Plugin.modules[5].getUser(message.author.id)
@@ -78,9 +162,7 @@ class NoSeals {constructor() {
                             icon_url: author.avatarURL
                         },
                         description: message.content,
-                        footer: {
-                            text: Plugin.config.embedFooter({message,author,channel})
-                        },
+                        footer: Plugin.config.embedFooter({message,author,channel}),
                         color: Plugin.config.embedColor({message,author,channel}),
                         timestamp: message.timestamp
                     }
@@ -98,44 +180,20 @@ class NoSeals {constructor() {
                 }
             })
         }
-        
-        Object.assign(window, {NoSeals: Plugin})
-        Object.assign(Export.default, {Export, Plugin})
-    }
-    Plugin.starter = () => {
-        Plugin.restore = [
-            Utils.monkeyPatch(Plugin.modules[0], "dispatch", {
-                before (data) {
-                    const action = data.methodArguments[0]
-                    const ActionTypes = Plugin.modules[1].ActionTypes
-                    
-                    if (Plugin.debug)
-                        Plugin.debug(data)
-                    
-                    if (action.type === ActionTypes.MESSAGE_CREATE) {
-                        const channel = data.methodArguments[0].channel_id
-                        const message = data.methodArguments[0].message
-                        
-                        Plugin.messageCache[message.id] = message
-                        
-                        const daemon = {state: 0, runtime: 6e4}
-                        daemon.process = setTimeout(wait => {
-                            if (Plugin.messageCache[message.id])
-                                delete Plugin.messageCache[message.id]
-                            daemon.state = 1
-                        }, daemon.runtime)
-                        
-                        Plugin.daemons.push(daemon)
-                    } else if (action.type === ActionTypes.MESSAGE_DELETE) {
-                        const message = data.methodArguments[0].id
-                        
-                        if (Plugin.messageCache[message])
-                            Plugin.retaliate(message)
-                    }
-                }
-            })
-        ]
-        Plugin.flusher = setInterval(flush => {
+        Plugin.patchDispatcher = () => Utils.monkeyPatch(Plugin.modules[0], "dispatch", {
+            before (data) {
+                const action = data.methodArguments[0]
+                const ActionTypes = Plugin.modules[1].ActionTypes
+                
+                if (Plugin.debug)
+                    Plugin.debug(data)
+                
+                if (action.type in Plugin.events)
+                    Plugin.events[action.type]({data, action})
+            }
+        })
+        Plugin.restore = [Plugin.patchDispatcher()]
+        Plugin.flusher = () => {
             const daemons = []
             const messageCache = []
             
@@ -149,13 +207,31 @@ class NoSeals {constructor() {
             
             Plugin.daemons = daemons
             Plugin.messageCache = messageCache
-        }, 10000)
+        }
+        Plugin.flushing = setInterval(Plugin.flusher, 10000)
+        Plugin.messageCache = {}
+        Plugin.daemons = []
+        
+        Object.assign(window, {NoSeals: Plugin})
+        Object.assign(Export.default, {Export, Plugin})
+        
+        utils.log("[NoSeals] Service initialized.")
+    }
+    Plugin.starter = () => {
+        if (!Plugin.modules[0].dispatch.__monkeyPatched)
+            Plugin.restore = [Plugin.patchDispatcher()]
+        
+        if (!Plugin.flushing)
+            Plugin.flushing = setInterval(Plugin.flusher, 10000)
+        
+        utils.log("[NoSeals] Service has been enabled.")
     }
     Plugin.stopper = () => {
         for (let i in Plugin.restore)
             Plugin.restore[i]()
+        clearInterval(Plugin.flushing)
         
-        clearInterval(Plugin.flusher)
+        utils.log("[NoSeals] Service disabled.")
     }
     
     Export.events = {
