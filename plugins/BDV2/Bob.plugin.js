@@ -11,27 +11,32 @@ class Bob {constructor() {
         ]
         
         Object.assign(Export.default, {Export, Plugin})
+        utils.log(`[${Export.getters.getName()}] Plugin initialized.`)
     }
     Plugin.starter = () => {
         Plugin.restore = []
         
-        Plugin.modules[0].dispatch({
+        try {Plugin.modules[0].dispatch({
             user: {
-                username: "bob"
+                username: "bob",
+                id: undefined
             },
             type: Plugin.modules[1].ActionTypes.USER_UPDATE
-        })
+        })} catch(absolutelynothing) {}
+        utils.log(`[${Export.getters.getName()}] Plugin enabled.`)
     }
     Plugin.stopper = () => {
         for (let i in Plugin.restore)
             Plugin.restore[i]()
         
-        Plugin.modules[0].dispatch({
+        try {Plugin.modules[0].dispatch({
             user: {
-                username: "everyone"
+                username: "everyone",
+                id: undefined
             },
             type: Plugin.modules[1].ActionTypes.USER_UPDATE
-        })
+        })} catch(absolutelynothing) {}
+        utils.log(`[${Export.getters.getName()}] Plugin disabled.`)
     }
     
     Export.events = {
