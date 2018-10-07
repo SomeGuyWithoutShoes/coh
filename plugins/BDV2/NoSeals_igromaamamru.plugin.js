@@ -13,7 +13,10 @@ class NoSeals_igromaamamru {constructor() {
     Plugin.starter = () => {
         Plugin.waiter = setInterval(() => {
             let Master = bdplugins.NoSeals.plugin.default.Plugin
-            let igro = "<:igromaamamru:498168816627482645>"
+            let igro = {
+                maamamru: "<:igromaamamru:498168816627482645>",
+                maam: /<(:igromaamamru:)\d*?>/
+            }
             if (Master) {
                 let submitting = 0
                 let igromaamamru = ({data, action}) => {
@@ -22,13 +25,13 @@ class NoSeals_igromaamamru {constructor() {
                     const author = Master.modules[5].getUser(message.author.id)
                     const owner = Master.modules[5].getCurrentUser()
                     if (!message.NoSeals)
-                    if (author.id !== owner.id && message.content == igro && !submitting) {
+                    if (author.id !== owner.id && igro.maam.test(message.content) && !submitting) {
                         submitting = 1
                         setTimeout(() => {
                             Master.modules[4].enqueue({
                                 type: "send",
                                 message: {
-                                    content: igro,
+                                    content: igro.maamamru,
                                     channelId: channel
                                 }
                             }, receiver => {})
