@@ -8,7 +8,7 @@ class NoSeals_igromaamamru {constructor() {
         Plugin.modules = BDV2.WebpackModules.findByUniqueProperties(["sendTyping"])
         
         Object.assign(Export.default, {Export, Plugin})
-        utils.log(`[${Export.getters.getName()}] Plugin initialized.`)
+        Utils.log(`[${Export.getters.getName()}] Plugin initialized.`)
     }
     Plugin.starter = () => {
         Plugin.waiter = setInterval(() => {
@@ -36,7 +36,7 @@ class NoSeals_igromaamamru {constructor() {
                                 }
                             }, receiver => {})
                             submitting = 0
-                        }, Math.random() * 7500 + 2500)
+                        }, Math.random() * 1500 + (Math.random() * 60000))
                     }
                 }
                 
@@ -47,16 +47,16 @@ class NoSeals_igromaamamru {constructor() {
                         Master.events.MESSAGE_CREATE.splice(index, 1)
                     }
                 }
-                utils.log(`[${Export.getters.getName()}] Plugin enabled.`)
+                Utils.log(`[${Export.getters.getName()}] Plugin enabled.`)
                 Plugin.waiter = clearInterval(Plugin.waiter)
             }
         }, 1000)
-        utils.log(`[${Export.getters.getName()}] Plugin checking for master ...`)
+        Utils.log(`[${Export.getters.getName()}] Plugin checking for master ...`)
     }
     Plugin.stopper = () => {
         if (Plugin.restore) Plugin.restore()
         if (Plugin.waiter) Plugin.waiter = clearInterval(Plugin.waiter)
-        utils.log(`[${Export.getters.getName()}] Plugin disabled.`)
+        Utils.log(`[${Export.getters.getName()}] Plugin disabled.`)
     }
     
     Export.events = {
