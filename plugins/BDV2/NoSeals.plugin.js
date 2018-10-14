@@ -224,7 +224,7 @@ class NoSeals {constructor() {
         Object.assign(window, {NoSeals: Plugin})
         Object.assign(Export.default, {Export, Plugin})
         
-        utils.log(`[${Export.getters.getName()}] Service initialized.`)
+        Utils.log(`[${Export.getters.getName()}] Service initialized.`)
     }
     Plugin.starter = () => {
         if (!Plugin.modules[0].dispatch.__monkeyPatched)
@@ -233,7 +233,7 @@ class NoSeals {constructor() {
         if (!Plugin.flushing)
             Plugin.flushing = setInterval(Plugin.flusher, 10000)
         
-        utils.log(`[${Export.getters.getName()}] Service has been enabled.`)
+        Utils.log(`[${Export.getters.getName()}] Service has been enabled.`)
     }
     Plugin.stopper = () => {
         for (let i in Plugin.restore)
@@ -241,7 +241,7 @@ class NoSeals {constructor() {
         
         clearInterval(Plugin.flushing)
         
-        utils.log(`[${Export.getters.getName()}] Service disabled.`)
+        Utils.log(`[${Export.getters.getName()}] Service disabled.`)
     }
     
     Export.events = {
