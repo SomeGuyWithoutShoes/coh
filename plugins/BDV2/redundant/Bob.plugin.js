@@ -11,7 +11,7 @@ class Bob {constructor() {
         ]
         
         Object.assign(Export.default, {Export, Plugin})
-        utils.log(`[${Export.getters.getName()}] Plugin initialized.`)
+        Utils.log(`[${Export.getters.getName()}] Plugin initialized.`)
     }
     Plugin.starter = () => {
         Plugin.restore = []
@@ -23,7 +23,7 @@ class Bob {constructor() {
             },
             type: Plugin.modules[1].ActionTypes.USER_UPDATE
         })} catch(absolutelynothing) {}
-        utils.log(`[${Export.getters.getName()}] Plugin enabled.`)
+        Utils.log(`[${Export.getters.getName()}] Plugin enabled.`)
     }
     Plugin.stopper = () => {
         for (let i in Plugin.restore)
@@ -36,7 +36,7 @@ class Bob {constructor() {
             },
             type: Plugin.modules[1].ActionTypes.USER_UPDATE
         })} catch(absolutelynothing) {}
-        utils.log(`[${Export.getters.getName()}] Plugin disabled.`)
+        Utils.log(`[${Export.getters.getName()}] Plugin disabled.`)
     }
     
     Export.events = {
