@@ -5,7 +5,7 @@ class NoSeals_igromaamamru {constructor() {
     const Plugin = new class $plugin {}
     
     Plugin.loader = () => {
-        Plugin.modules = BDV2.WebpackModules.findByUniqueProperties(["sendTyping"])
+        Plugin.modules = BDV2.WebpackModules.findByUniqueProperties(["put"])
         
         Object.assign(Export.default, {Export, Plugin})
         Utils.log(`[${Export.getters.getName()}] Plugin initialized.`)
@@ -14,7 +14,8 @@ class NoSeals_igromaamamru {constructor() {
         Plugin.waiter = setInterval(() => {
             let Master = bdplugins.NoSeals.plugin.default.Plugin
             let igro = {
-                maamamru: "<:igromaamamru:498168816627482645>",
+                maamamru: "498168816627482645",
+                mame: "igromaamamru",
                 maam: /<(:igromaamamru:)\d*?>/
             }
             if (Master) {
@@ -28,15 +29,11 @@ class NoSeals_igromaamamru {constructor() {
                     if (author.id !== owner.id && igro.maam.test(message.content) && !submitting) {
                         submitting = 1
                         setTimeout(() => {
-                            Master.modules[4].enqueue({
-                                type: "send",
-                                message: {
-                                    content: igro.maamamru,
-                                    channelId: channel
-                                }
-                            }, receiver => {})
+                            Plugin.modules.put(Master.modules[1].Endpoints.REACTION(
+                                channel, message.id, `${igro.mame}:${igro.maamamru}`, "@me"
+                            ))
                             submitting = 0
-                        }, Math.random() * 1500 + (Math.random() * 60000))
+                        }, 1500)
                     }
                 }
                 
