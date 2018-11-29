@@ -20,11 +20,6 @@ nMaxOffset:=6
 bRepeatR:=0
 bRepeatE:=0
 
-;
-;   Runtime.
-;
-WinGetTitle, sProcessTitle, ahk_exe Fallout76.exe
-
 F1::
     bRepeatR:=!bRepeatR
     ToolTip, AHK Informant:`n - F1 is currently active.
