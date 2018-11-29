@@ -20,13 +20,18 @@ nMaxOffset:=6
 bRepeatR:=0
 bRepeatE:=0
 
+;
+;   Runtime.
+;
+WinGetTitle, sProcessTitle, ahk_exe Fallout76.exe
+
 F1::
     bRepeatR:=!bRepeatR
     ToolTip, AHK Informant:`n - F1 is currently active.
     while (bRepeatR=1) {
-        Send, {r up}
-        Sleep, % fCalculateDelay()
         Send, {r down}
+        Sleep, % fCalculateDelay()
+        Send, {r up}
         Sleep, % fCalculateDelay()
     }
     ToolTip
@@ -36,9 +41,9 @@ F2::
     bRepeatE:=!bRepeatE
     ToolTip, AHK Informant:`n - F2 is currently active.
     while (bRepeatE=1) {
-        Send, {e up}
-        Sleep, % fCalculateDelay()
         Send, {e down}
+        Sleep, % fCalculateDelay()
+        Send, {e up}
         Sleep, % fCalculateDelay()
     }
     ToolTip
