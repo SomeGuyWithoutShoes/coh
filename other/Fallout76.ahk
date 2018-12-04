@@ -22,9 +22,9 @@ ToggleRepeatKey(sKeyToRepeat) {
     
     KeyStack[A_ThisHotkey]:=!KeyStack[A_ThisHotkey]
     While (KeyStack[A_ThisHotkey]=1) {
-        Send, {%sKey% down}
+        Send, {%sKeyToRepeat% down}
         Sleep, % CalculateDelay()
-        Send, {%sKey% up}
+        Send, {%sKeyToRepeat% up}
         Sleep, % CalculateDelay()
     }
     return
