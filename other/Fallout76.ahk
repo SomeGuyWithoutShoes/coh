@@ -3,48 +3,33 @@
 #maxThreadsPerHotkey, 2
 SendMode Input
 SetWorkingDir %A_ScriptDir%
+KeyStack:={}
 #IfWinActive ahk_exe Fallout76.exe
 
-;
-;   Configurable values.
-;
-nGeneralDelay:=1
+; Configuration.    ; Default set to randomize between 0ms and 8ms.
+nGeneralDelay:=0    ; How long will each action take by default.
+bRandomizeDelay:=1  ; If or if not to add randomization on top of the default.
+nMinOffset:=0       ; Minimum amount of randomization.
+nMaxOffset:=8       ; Maximum amount of randomization.
 
-bRandomizeDelay:=1
-nMinOffset:=6
-nMaxOffset:=6
+; Hotkeys.
+F1::ToggleRepeatKey("r")
+F2::ToggleRepeatKey("e")
 
-;
-;   Natives.
-;
-bRepeatR:=0
-bRepeatE:=0
-
-F1::
-    bRepeatR:=!bRepeatR
-    ToolTip, AHK Informant:`n - F1 is currently active.
-    while (bRepeatR=1) {
-        Send, {r down}
-        Sleep, % fCalculateDelay()
-        Send, {r up}
-        Sleep, % fCalculateDelay()
+; Methods.
+ToggleRepeatKey(sKeyToRepeat) {
+    Global
+    
+    KeyStack[A_ThisHotkey]:=!KeyStack[A_ThisHotkey]
+    While (KeyStack[A_ThisHotkey]=1) {
+        Send, {%sKey% down}
+        Sleep, % CalculateDelay()
+        Send, {%sKey% up}
+        Sleep, % CalculateDelay()
     }
-    ToolTip
     return
-
-F2::
-    bRepeatE:=!bRepeatE
-    ToolTip, AHK Informant:`n - F2 is currently active.
-    while (bRepeatE=1) {
-        Send, {e down}
-        Sleep, % fCalculateDelay()
-        Send, {e up}
-        Sleep, % fCalculateDelay()
-    }
-    ToolTip
-    return
-
-fCalculateDelay() {
+}
+CalculateDelay(nStatic:=-1) {
     Global
     
     nResult:=nGeneralDelay
@@ -52,5 +37,5 @@ fCalculateDelay() {
         Random, nRandom, %nMinOffset%, %nMaxOffset%
         nResult:=nResult+nRandom
     }
-    return nResult
+    return (nStatic=-1)? nResult: nStatic
 }
