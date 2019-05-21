@@ -5,13 +5,13 @@ class SilentTyping {constructor() {
     const Plugin = new class $plugin {}
     
     Plugin.loader = () => {
-        Plugin.modules = BDV2.WebpackModules.findByUniqueProperties(["sendTyping"])
+        Plugin.modules = BDV2.WebpackModules.findByUniqueProperties(["startTyping"])
         
         Object.assign(Export.default, {Export, Plugin})
         Utils.log(`[${Export.getters.getName()}] Plugin initialized.`)
     }
     Plugin.starter = () => {
-        if (!Plugin.restore) Plugin.restore = Utils.monkeyPatch(Plugin.modules, "sendTyping", {
+        if (!Plugin.restore) Plugin.restore = Utils.monkeyPatch(Plugin.modules, "startTyping", {
             instead () {}
         })
         Utils.log(`[${Export.getters.getName()}] Plugin enabled.`)
