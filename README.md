@@ -1,2 +1,2 @@
-# disbd
-Better Discord plugin/theme repo.
+# coh
+How come I never bothered to update this.
