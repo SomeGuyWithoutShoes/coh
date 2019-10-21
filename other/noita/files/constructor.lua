@@ -5,18 +5,25 @@ Zoomies.libs = {
         local ffi = require "ffi"
         ffi.cdef [[
             typedef struct SDL_Window SDL_Window;
-            SDL_Window* SDL_GL_GetCurrentWindow (void);
-            void SDL_MaximizeWindow (SDL_Window *window);
-            void SDL_MinimizeWindow (SDL_Window *window);
-            
             typedef struct SDL_Renderer SDL_Renderer;
             typedef struct SDL_Rect
             {
                 int x, y;
                 int w, h;
             } SDL_Rect;
-            SDL_Renderer* SDL_GetRenderer(SDL_Window * window);
+            
+            const char* SDL_GetError (void);
+            void SDL_ClearError (void);
+            
+            SDL_Window* SDL_GL_GetCurrentWindow (void);
+            void SDL_MaximizeWindow (SDL_Window *window);
+            void SDL_MinimizeWindow (SDL_Window *window);
+            
+            SDL_Renderer* SDL_GetRenderer(SDL_Window* window);
+            int SDL_SetRenderDrawColor (SDL_Renderer* renderer, int r, int g, int b, int a);
             int SDL_RenderClear (SDL_Renderer* renderer);
+            int SDL_RenderFillRect (SDL_Renderer* renderer, const SDL_Rect* rect);
+            void SDL_RenderPresent (SDL_Renderer* renderer);
             int SDL_RenderSetLogicalSize (SDL_Renderer* renderer, int w, int h);
             int SDL_RenderSetViewport (SDL_Renderer* renderer, const SDL_Rect* rect);
             
@@ -275,16 +282,57 @@ Zoomies.libs = {
         }
         return setmetatable({}, {
             __index = function(self, key)
-                local normalized = key:upper()
-                return sdl[key]
-                or  sdl.scancodes["SDL_".. normalized] or sdl.scancodes[normalized]
-                or  sdl.dll["SDL_".. key] or sdl.dll[key]
-                or  nil
+                local normalized = key:match("^SDL_") and key or ("SDL_".. key)
+                local uppercase = normalized:upper()
+                local ignoreFetchError, result = pcall(function()
+                    return sdl[key]
+                        or sdl.scancodes[normalized] or sdl.scancodes[uppercase]
+                        or sdl.dll[normalized]
+                        or nil
+                end)
+                return (type(result) ~= "function" and type(result) ~= "cdata")
+                    and result
+                    or setmetatable({}, {
+                        __call = function(self, ...)
+                            sdl.dll.SDL_ClearError()
+                            local args = {...}
+                            local n = select("#", ...)
+                            local success, _result = pcall(function()
+                                if n > 1 then
+                                    return result(unpack(args))
+                                elseif n == 1 then
+                                    return result(args[1])
+                                else
+                                    return result()
+                                end
+                            end)
+                            local SDLError = ffi.string(sdl.dll.SDL_GetError())
+                            if success and SDLError == "" then
+                                return _result
+                            else
+                                local msg = "[Zoomies]\t[SDL2.DLL]\tEncountered an error calling function ".. normalized.. ".\n"
+                                if n > 0 then
+                                    msg = msg.."  Arguments (".. n.. "):\n"
+                                    if n > 1 then
+                                        for k, v in pairs(args) do
+                                            msg = msg.. "    ".. tostring(k).. ": ".. tostring(v).. "\n"
+                                        end
+                                    else
+                                        msg = msg.. "    1 = ".. tostring(args[1]).. "\n"
+                                    end
+                                end
+                                msg = msg.. "  PCall Result:\n".. tostring(_result).. "\n"
+                                msg = msg.. "  SDL_GetError:\n".. tostring(SDLError).. "\n"
+                                print(msg)
+                            end
+                        end
+                    })
             end,
             __newindex = function(self, key, value) end,
         })
     end},
     {"game", function()
+        local ffi = Zoomies.ffi
         local sdl = Zoomies.sdl
         local game = {window = sdl.GL_GetCurrentWindow()}
         game.renderer = sdl.GetRenderer(game.window)
